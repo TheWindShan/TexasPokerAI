@@ -26,6 +26,7 @@ local MATCH = {
     id = 1,
     smallBlind = 1, -- 小盲注
     bigBlind = 2, -- 大盲注
+    maxPot = 3, -- 当前最大注
     playerInfos = { {}, {}, {}, }, -- PLAYER数组,固定的顺序,dealer每局过后会更新
     cards = { {}, {}, {} }, -- 桌面已翻开的CARD数组, 0-5张
     mainPot = 10000,
@@ -35,32 +36,10 @@ local MATCH = {
     },
 }
 
--- 52张牌预览
-local CARDS = {
-    { 2, "c" }, -- 草花2
-    { 2, "d" }, -- 方块2
-    { 2, "h" }, -- 红桃2
-    { 2, "s" }, -- 黑桃2
-    -- ...
-    { 10, "c" }, -- 10
-    { 10, "d" },
-    { 10, "h" },
-    { 10, "s" },
-    -- ..
-    { 11, "c" }, -- 草花J
-    { 11, "d" },
-    { 11, "h" },
-    { 11, "s" },
-    -- ..
-    { 14, "c" }, -- 草花A
-    { 14, "d" },
-    { 14, "h" },
-    { 14, "s" },
-}
-
 local playTimes = 1
 local initMoney = 10000
 local match = {}
+local dealer = require "app.Dealer"
 
 function TexasPoker:play()
     print("=====================================================================")
@@ -110,6 +89,7 @@ end
 function TexasPoker:startNewRound(i)
     print("---------------------------------------------------------------------")
     print("TexasPoker:startNewRound --> " .. i)
+
     match.id = i
     -- set dealer
     for i = 1, #match.playerInfos do
@@ -120,48 +100,93 @@ function TexasPoker:startNewRound(i)
     end
     -- blind pot
     match.mainPot = match.smallBlind + match.bigBlind
+    match.maxPot = match.bigBlind
 
+    TexasPoker:prepare()
+    TexasPoker:start()
+    TexasPoker:preFlop()
+    TexasPoker:flop()
+    TexasPoker:turn()
+    TexasPoker:river()
+    TexasPoker:endRound(i)
+end
+
+function TexasPoker:prepare()
     -- prepare
     print("TexasPoker:prepare ------------------------------")
     for i = 1, #match.playerInfos do
         match.playerInfos[i].player:onNewRoundPrepare(match)
     end
+    dealer:prepare()
+end
 
+function TexasPoker:start()
     -- start
     print("TexasPoker:start ------------------------------")
+    -- shuffle
+    dealer:shuffle()
+
+    print(string.format("TexasPoker:dispatchCards:"))
+    local ret = dealer:dispatchCardPreFlop(#match.playerInfos)
+    for i = 1, #match.playerInfos do
+        match.playerInfos[i].cards = ret[i]
+        print(string.format("player(%s) --> [%d%s, %d%s]", match.playerInfos[i].name,
+            ret[i][1].number, ret[i][1].color, ret[i][2].number, ret[i][2].color))
+    end
+
     for i = 1, #match.playerInfos do
         match.playerInfos[i].player:onNewRoundStart(match)
     end
+end
 
+function TexasPoker:preFlop(i)
     -- pre flop
     print("TexasPoker:pre flop ------------------------------")
     for i = 1, #match.playerInfos do
-        match.playerInfos[i].player:onPreflop(match)
+        local ret = match.playerInfos[i].player:onPreflop(match)
+        if ret == 0 then
+            print(string.format("player(%s) --> Check", match.playerInfos[i].name))
+        elseif ret < 0 then
+            print(string.format("player(%s) --> Fold", match.playerInfos[i].name))
+        elseif ret == match.maxPot then
+            print(string.format("player(%s) --> Call", match.playerInfos[i].name))
+        elseif ret > match.maxPot then
+            print(string.format("player(%s) --> Raise", match.playerInfos[i].name))
+        end
     end
+end
 
+function TexasPoker:flop(i)
     -- flop
     print("TexasPoker:flop ------------------------------")
     for i = 1, #match.playerInfos do
         match.playerInfos[i].player:onFlop(match)
     end
+end
 
+function TexasPoker:turn(i)
     -- turn
     print("TexasPoker:turn ------------------------------")
     for i = 1, #match.playerInfos do
-        match.playerInfos[i].player:onTurn(match)
+        local ret = match.playerInfos[i].player:onTurn(match)
     end
+end
 
+function TexasPoker:river(i)
     -- river
     print("TexasPoker:river ------------------------------")
     for i = 1, #match.playerInfos do
         match.playerInfos[i].player:onRiver(match)
     end
+end
 
+function TexasPoker:endRound(i)
     -- end
     print("TexasPoker:end ------------------------------")
     for i = 1, #match.playerInfos do
         match.playerInfos[i].player:onNewRoundEnd(match)
     end
+
     print("TexasPoker:endRound --> " .. i)
     print("---------------------------------------------------------------------")
 end
