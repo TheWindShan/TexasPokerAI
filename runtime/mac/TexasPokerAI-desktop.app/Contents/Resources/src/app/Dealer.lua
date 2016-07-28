@@ -35,6 +35,7 @@ local cards = {}
 local randSeed = 1
 local dispatchIndex = 1
 function Dealer:prepare()
+    print("Dealer:prepare")
     cards = {}
     local colors = { "c", "d", "h", "s" }
     for i = 2, 14 do
@@ -44,6 +45,7 @@ function Dealer:prepare()
 end
 
 function Dealer:shuffle()
+    print("Dealer:shuffle")
     local size = #cards
     for i = size, 1, -1 do
         local index = math.random(1, i)
@@ -57,6 +59,7 @@ end
 
 -- 玩家人数,第一轮每人2张,
 function Dealer:dispatchCardPreFlop(playerCount)
+    print("Dealer:dispatchCardPreFlop")
     local ret = {}
     for i = 1, playerCount do
         table.insert(ret, { cards[dispatchIndex] })
@@ -71,6 +74,7 @@ end
 
 -- 发牌张数, flop:3, turn:1, river:1, 先弃一张
 function Dealer:dispatchCard(cardCount)
+    print("Dealer:dispatchCard")
     return {}
 end
 
