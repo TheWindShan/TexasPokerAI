@@ -27,22 +27,22 @@ end
 
 -- 第一次翻牌前下注(仅手里2张): 返回下注的钱, 0check, -1弃牌, [非法:如果比人家少直接弃牌,比自己多则算all-in]
 function Player1:onPreflop(MATCH)
-    return 0
+    return math.random(-1, 10)
 end
 
 -- 翻牌下注(已翻3张牌): 返回下注的钱, 0check, -1弃牌, [非法:如果比人家少直接弃牌,比自己多则算all-in]
 function Player1:onFlop(MATCH)
-    return 0
+    return math.random(-1, 10)
 end
 
 -- 转下注(已翻4张牌): 返回下注的钱, 0check, -1弃牌, [非法:如果比人家少直接弃牌,比自己多则算all-in]
 function Player1:onTurn(MATCH)
-    return 0
+    return math.random(-1, 10)
 end
 
 -- 河牌圈下注(已翻5张牌): 返回下注的钱, 0check, -1弃牌, [非法:如果比人家少直接弃牌,比自己多则算all-in]
 function Player1:onRiver(MATCH)
-    return 0
+    return math.random(-1, 10)
 end
 
 -- 一轮结束

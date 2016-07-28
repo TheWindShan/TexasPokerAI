@@ -10,25 +10,25 @@ local Dealer = {}
 
 -- 52张牌预览
 local CARDS = {
-    { number = 2, color = "c" }, -- 草花2
-    { number = 2, color = "d" }, -- 方块2
-    { number = 2, color = "h" }, -- 红桃2
-    { number = 2, color = "s" }, -- 黑桃2
+    { number = 2, color = "♣" }, -- 草花2
+    { number = 2, color = "♦" }, -- 方块2
+    { number = 2, color = "♥" }, -- 红桃2
+    { number = 2, color = "♠" }, -- 黑桃2
     -- ...
-    { number = 10, color = "c" }, -- 10
-    { number = 10, color = "d" },
-    { number = 10, color = "h" },
-    { number = 10, color = "s" },
+    { number = 10, color = "♣" }, -- 10
+    { number = 10, color = "♦" },
+    { number = 10, color = "♥" },
+    { number = 10, color = "♠" },
     -- ..
-    { number = 11, color = "c" }, -- 草花J
-    { number = 11, color = "d" },
-    { number = 11, color = "h" },
-    { number = 11, color = "s" },
+    { number = 11, color = "♣" }, -- 草花J
+    { number = 11, color = "♦" },
+    { number = 11, color = "♥" },
+    { number = 11, color = "♠" },
     -- ..
-    { number = 14, color = "c" }, -- 草花A
-    { number = 14, color = "d" },
-    { number = 14, color = "h" },
-    { number = 14, color = "s" },
+    { number = 14, color = "♣" }, -- 草花A
+    { number = 14, color = "♦" },
+    { number = 14, color = "♥" },
+    { number = 14, color = "♠" },
 }
 
 local cards = {}
@@ -37,7 +37,7 @@ local dispatchIndex = 1
 function Dealer:prepare()
     print("Dealer:prepare")
     cards = {}
-    local colors = { "c", "d", "h", "s" }
+    local colors = { "♣", "♦", "♥", "♠" }
     for i = 2, 14 do
         table.insert(cards, { number = i, color = colors[(i - 1) % 4 + 1] })
     end
