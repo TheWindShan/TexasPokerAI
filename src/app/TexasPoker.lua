@@ -8,11 +8,13 @@
 
 local TexasPoker = {}
 
+-- 扑克牌数据格式
 local CARD = {
     number = 2,
     color = "d",
 }
 
+-- 用户信息数据格式
 local PLAYER = {
     name = "player1",
     moneyLeft = 10000,
@@ -22,11 +24,12 @@ local PLAYER = {
     moneyDelta = -100, -- 结束的时候筹码变化情况
 }
 
+-- 比赛信息数据格式
 local MATCH = {
     id = 1,
     smallBlind = 1, -- 小盲注
     bigBlind = 2, -- 大盲注
-    maxPot = 3, -- 当前最大注
+    maxPot = 3, -- 当前牌圈最大注,所有玩家必须跟注,否则弃牌
     playerInfos = { {}, {}, {}, }, -- PLAYER数组,固定的顺序,dealer每局过后会更新
     cards = { {}, {}, {} }, -- 桌面已翻开的CARD数组, 0-5张
     mainPot = 10000,
@@ -98,9 +101,11 @@ function TexasPoker:startNewRound(i)
         if dealer then
         end
     end
-    -- blind pot
+    -- reset datas
+    match.cards = {}
     match.mainPot = match.smallBlind + match.bigBlind
     match.maxPot = match.bigBlind
+    match.sidePots = {}
 
     TexasPoker:prepare()
     TexasPoker:start()
@@ -123,6 +128,7 @@ end
 function TexasPoker:start()
     -- start
     print("TexasPoker:start ------------------------------")
+    print(string.format("TexasPoker:mainPot ==> $$$$$$$$$ %d $$$$$$$", match.mainPot))
     -- shuffle
     dealer:shuffle()
 
@@ -139,12 +145,13 @@ function TexasPoker:start()
     end
 end
 
-function TexasPoker:preFlop(i)
+function TexasPoker:preFlop()
     -- pre flop
     print("TexasPoker:pre flop ------------------------------")
-    for i = 1, #match.playerInfos do
+    local i = 1
+    for i = 1, #match.playerInfos * 3 do
         local ret = match.playerInfos[i].player:onPreflop(match)
-        if ret == 0 then
+        if ret == 0 and match.maxPot == 0 then
             print(string.format("player(%s) --> Check", match.playerInfos[i].name))
         elseif ret < 0 then
             print(string.format("player(%s) --> Fold", match.playerInfos[i].name))
@@ -154,9 +161,11 @@ function TexasPoker:preFlop(i)
             print(string.format("player(%s) --> Raise", match.playerInfos[i].name))
         end
     end
+
+    print(string.format("TexasPoker:mainPot ==> $$$$$$$$$ %d $$$$$$$", match.mainPot))
 end
 
-function TexasPoker:flop(i)
+function TexasPoker:flop()
     -- flop
     print("TexasPoker:flop ------------------------------")
     for i = 1, #match.playerInfos do
@@ -164,7 +173,7 @@ function TexasPoker:flop(i)
     end
 end
 
-function TexasPoker:turn(i)
+function TexasPoker:turn()
     -- turn
     print("TexasPoker:turn ------------------------------")
     for i = 1, #match.playerInfos do
@@ -172,7 +181,7 @@ function TexasPoker:turn(i)
     end
 end
 
-function TexasPoker:river(i)
+function TexasPoker:river()
     -- river
     print("TexasPoker:river ------------------------------")
     for i = 1, #match.playerInfos do
