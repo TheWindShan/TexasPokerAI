@@ -21,7 +21,7 @@ local PLAYER = {
     dealer = true,
     bet = 100, -- 此轮下注,0check或者还未轮到,-1已弃牌
     cards = { {}, {} }, -- 自己的2张牌
-    moneyDelta = -100, -- 结束的时候筹码变化情况
+    moneyDelta = -100, -- 每轮结束的时候筹码变化情况
     out = false, -- 盖牌出局
 }
 
@@ -54,43 +54,41 @@ local maxRound = 4 -- 每一轮最多加注4次
 local match = {}
 local dealer = require "app.Dealer"
 
+local function GET_PLAYER(name)
+    for i = 1, #match.playerInfos do
+        if match.playerInfos[i].name == name then
+            return match.playerInfos[i]
+        end
+    end
+    return nil
+end
+
+cc.exports.GET_PLAYER = GET_PLAYER
+
 function TexasPoker:play()
     print("=====================================================================")
     print("=====================================================================")
     print("TexasPoker:play")
-    local Player1 = require "app.players.Player1"
-    local Player2 = require "app.players.Player2"
-    local Player3 = require "app.players.Player3"
     match = {
         smallBlind = 1,
         bigBlind = 2,
-        playerInfos = {
-            {
-                player = Player1,
-                name = Player1:getName(),
-                moneyLeft = initMoney,
-                bet = 0,
-                cards = {},
-                moneyDelta = 0,
-            },
-            {
-                player = Player2,
-                name = Player2:getName(),
-                moneyLeft = initMoney,
-                bet = 0,
-                cards = {},
-                moneyDelta = 0,
-            },
-            {
-                player = Player3,
-                name = Player3:getName(),
-                moneyLeft = initMoney,
-                bet = 0,
-                cards = {},
-                moneyDelta = 0,
-            }
-        },
+        playerInfos = {},
     }
+    local Players = {
+        require "app.players.Player1",
+        require "app.players.Player2",
+        require "app.players.Player3"
+    }
+    for i = 1, #Players do
+        table.insert(match.playerInfos, {
+            player = Players[i],
+            name = Players[i].name,
+            moneyLeft = initMoney,
+            bet = 0,
+            cards = {},
+            moneyDelta = 0,
+        })
+    end
 
     TexasPoker:sitDown()
 end
@@ -153,12 +151,37 @@ function TexasPoker:startNewRound(i)
         if TexasPoker:preFlop() then
             break
         end
+        print(string.format("*******************************TexasPoker:dispatchCards:*******************************"))
+        local ret = dealer:dispatchCard(3)
+        table.insert(match.cards, ret[1])
+        table.insert(match.cards, ret[2])
+        table.insert(match.cards, ret[3])
+        print(string.format("player(%s) --> [%d%s, %d%s, %d%s]",
+            match.cards[1].name, match.cards[1].color,
+            match.cards[2].name, match.cards[2].color,
+            match.cards[3].name, match.cards[3].color))
+
         if TexasPoker:flop() then
             break
         end
+        local ret = dealer:dispatchCard(1)
+        table.insert(match.cards, ret[i])
+        print(string.format("player(%s) --> [%d%s, %d%s, %d%s, %d%s]",
+            match.cards[1].name, match.cards[1].color,
+            match.cards[2].name, match.cards[2].color,
+            match.cards[3].name, match.cards[3].color,
+            match.cards[4].name, match.cards[4].color))
         if TexasPoker:turn() then
             break
         end
+        local ret = dealer:dispatchCard(1)
+        table.insert(match.cards, ret[i])
+        print(string.format("player(%s) --> [%d%s, %d%s, %d%s, %d%s, %d%s]",
+            match.cards[1].name, match.cards[1].color,
+            match.cards[2].name, match.cards[2].color,
+            match.cards[3].name, match.cards[3].color,
+            match.cards[4].name, match.cards[4].color,
+            match.cards[5].name, match.cards[5].color))
         if TexasPoker:river() then
             break
         end
@@ -186,7 +209,7 @@ function TexasPoker:start()
 
     -- shuffle
     dealer:shuffle()
-    print(string.format("TexasPoker:dispatchCards:"))
+    print(string.format("*******************************TexasPoker:dispatchCards:*******************************"))
     local ret = dealer:dispatchCardPreFlop(#match.playerInfos)
     for i = 1, #match.playerInfos do
         match.playerInfos[i].cards = ret[i]

@@ -74,8 +74,13 @@ end
 
 -- 发牌张数, flop:3, turn:1, river:1, 先弃一张
 function Dealer:dispatchCard(cardCount)
+    local ret = {}
     print("Dealer:dispatchCard")
-    return {}
+    for i = 1, cardCount do
+        table.insert(ret, { cards[dispatchIndex] })
+        dispatchIndex = dispatchIndex + 1
+    end
+    return ret
 end
 
 return Dealer
