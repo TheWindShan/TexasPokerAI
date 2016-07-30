@@ -156,32 +156,32 @@ function TexasPoker:startNewRound(i)
         table.insert(match.cards, ret[1])
         table.insert(match.cards, ret[2])
         table.insert(match.cards, ret[3])
-        print(string.format("player(%s) --> [%d%s, %d%s, %d%s]",
-            match.cards[1].name, match.cards[1].color,
-            match.cards[2].name, match.cards[2].color,
-            match.cards[3].name, match.cards[3].color))
+        print(string.format("Cards --> [%d%s, %d%s, %d%s]",
+            match.cards[1].number, match.cards[1].color,
+            match.cards[2].number, match.cards[2].color,
+            match.cards[3].number, match.cards[3].color))
 
         if TexasPoker:flop() then
             break
         end
         local ret = dealer:dispatchCard(1)
-        table.insert(match.cards, ret[i])
-        print(string.format("player(%s) --> [%d%s, %d%s, %d%s, %d%s]",
-            match.cards[1].name, match.cards[1].color,
-            match.cards[2].name, match.cards[2].color,
-            match.cards[3].name, match.cards[3].color,
-            match.cards[4].name, match.cards[4].color))
+        table.insert(match.cards, ret[1])
+        print(string.format("Cards --> [%d%s, %d%s, %d%s, %d%s]",
+            match.cards[1].number, match.cards[1].color,
+            match.cards[2].number, match.cards[2].color,
+            match.cards[3].number, match.cards[3].color,
+            match.cards[4].number, match.cards[4].color))
         if TexasPoker:turn() then
             break
         end
         local ret = dealer:dispatchCard(1)
-        table.insert(match.cards, ret[i])
-        print(string.format("player(%s) --> [%d%s, %d%s, %d%s, %d%s, %d%s]",
-            match.cards[1].name, match.cards[1].color,
-            match.cards[2].name, match.cards[2].color,
-            match.cards[3].name, match.cards[3].color,
-            match.cards[4].name, match.cards[4].color,
-            match.cards[5].name, match.cards[5].color))
+        table.insert(match.cards, ret[1])
+        print(string.format("Cards --> [%d%s, %d%s, %d%s, %d%s, %d%s]",
+            match.cards[1].number, match.cards[1].color,
+            match.cards[2].number, match.cards[2].color,
+            match.cards[3].number, match.cards[3].color,
+            match.cards[4].number, match.cards[4].color,
+            match.cards[5].number, match.cards[5].color))
         if TexasPoker:river() then
             break
         end

@@ -59,7 +59,7 @@ end
 
 -- 玩家人数,第一轮每人2张,
 function Dealer:dispatchCardPreFlop(playerCount)
-    print("Dealer:dispatchCardPreFlop")
+    print(string.format("Dealer:dispatchCardPreFlop, playerCount = %d", playerCount))
     local ret = {}
     for i = 1, playerCount do
         table.insert(ret, { cards[dispatchIndex] })
@@ -74,10 +74,10 @@ end
 
 -- 发牌张数, flop:3, turn:1, river:1, 先弃一张
 function Dealer:dispatchCard(cardCount)
+    print(string.format("Dealer:dispatchCard, count = %d", cardCount))
     local ret = {}
-    print("Dealer:dispatchCard")
     for i = 1, cardCount do
-        table.insert(ret, { cards[dispatchIndex] })
+        table.insert(ret, cards[dispatchIndex])
         dispatchIndex = dispatchIndex + 1
     end
     return ret
