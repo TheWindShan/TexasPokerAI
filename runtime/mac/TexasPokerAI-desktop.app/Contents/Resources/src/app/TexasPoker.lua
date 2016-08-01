@@ -105,9 +105,6 @@ function TexasPoker:sitDown()
         TexasPoker:startNewRound(id)
         id = id + 1
     until TexasPoker:isEnd()
-
-    print("=====================================================================")
-    print("=====================================================================")
 end
 
 function TexasPoker:isEnd()
@@ -120,8 +117,7 @@ end
 
 function TexasPoker:startNewRound(i)
     print("")
-    print("---------------------------------------------------------------------")
-    print("TexasPoker:startNewRound --> " .. i)
+    print(string.format("************************* Round %d Start *************************", i))
     for i = 1, #match.playerInfos do
         print(string.format("%s: moneyLeft ==> $%d", match.playerInfos[i].name, match.playerInfos[i].moneyLeft))
     end
@@ -176,7 +172,6 @@ function TexasPoker:startNewRound(i)
         if ret == 2 then
             break
         end
-        print(string.format("*******************************TexasPoker:dispatchCards:*******************************"))
         local cards = dealer:dispatchCard(3)
         table.insert(match.cards, cards[1])
         table.insert(match.cards, cards[2])
@@ -242,7 +237,6 @@ function TexasPoker:start()
 
     -- shuffle
     dealer:shuffle()
-    print(string.format("*******************************TexasPoker:dispatchCards:*******************************"))
     local ret = dealer:dispatchCardPreFlop(#match.playerInfos)
     for i = 1, #match.playerInfos do
         match.playerInfos[i].cards = ret[i]
@@ -314,9 +308,8 @@ function TexasPoker:endRound()
         print(string.format("%s: moneyLeft ==> $%d", match.playerInfos[i].name, match.playerInfos[i].moneyLeft))
         total = total + match.playerInfos[i].moneyLeft
     end
-    print("TexasPoker:endRound --> " .. match.id)
     print("TotalMoney = $" .. total)
-    print("---------------------------------------------------------------------")
+    print(string.format("************************* Round %d End *************************", match.id))
     print("")
 end
 
@@ -441,7 +434,7 @@ function TexasPoker:printBet(balance)
     local ret = ""
     for i = 1, #match.playerInfos do
         if match.playerInfos[i].out then
-            ret = ret .. string.format("(%s: $%d/%d) ", match.playerInfos[i].name, match.playerInfos[i].bet, match.playerInfos[i].moneyLeft)
+            ret = ret .. string.format("(-----: $%d/%d) ", match.playerInfos[i].bet, match.playerInfos[i].moneyLeft)
         else
             ret = ret .. string.format("[%s: $%d/%d] ", match.playerInfos[i].name, match.playerInfos[i].bet, match.playerInfos[i].moneyLeft)
         end

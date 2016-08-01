@@ -25,11 +25,11 @@ end
 -- 第一次翻牌前下注(仅手里2张): 返回下注的钱, 0check, -1弃牌, [非法:如果比人家少直接弃牌,比自己多则算all-in]
 function Player:onPreflop(MATCH)
     local me = GET_PLAYER(Player.name)
-    local ret = math.random(1, 50)
+    local ret = math.random(1, 100)
     if ret == 1 then
         -- flod
         return -1
-    elseif ret < 30 then
+    elseif ret < 60 then
         if MATCH.maxPot == me.bet then
             -- check
             return 0
@@ -37,7 +37,7 @@ function Player:onPreflop(MATCH)
             -- call
             return MATCH.maxPot - me.bet
         end
-    elseif ret < 50 then
+    elseif ret < 98 then
         -- raise
         return math.random(MATCH.maxPot - me.bet + 1, MATCH.maxPot - me.bet + 200)
     else
@@ -49,11 +49,11 @@ end
 -- 翻牌下注(已翻3张牌): 返回下注的钱, 0check, -1弃牌, [非法:如果比人家少直接弃牌,比自己多则算all-in]
 function Player:onFlop(MATCH)
     local me = GET_PLAYER(Player.name)
-    local ret = math.random(1, 50)
+    local ret = math.random(1, 100)
     if ret == 1 then
         -- flod
         return -1
-    elseif ret < 30 then
+    elseif ret < 60 then
         if MATCH.maxPot == me.bet then
             -- check
             return 0
@@ -61,7 +61,7 @@ function Player:onFlop(MATCH)
             -- call
             return MATCH.maxPot - me.bet
         end
-    elseif ret < 50 then
+    elseif ret < 98 then
         -- raise
         return math.random(MATCH.maxPot - me.bet + 1, MATCH.maxPot - me.bet + 200)
     else
@@ -73,11 +73,11 @@ end
 -- 转下注(已翻4张牌): 返回下注的钱, 0check, -1弃牌, [非法:如果比人家少直接弃牌,比自己多则算all-in]
 function Player:onTurn(MATCH)
     local me = GET_PLAYER(Player.name)
-    local ret = math.random(1, 50)
+    local ret = math.random(1, 100)
     if ret == 1 then
         -- flod
         return -1
-    elseif ret < 30 then
+    elseif ret < 60 then
         if MATCH.maxPot == me.bet then
             -- check
             return 0
@@ -85,7 +85,7 @@ function Player:onTurn(MATCH)
             -- call
             return MATCH.maxPot - me.bet
         end
-    elseif ret < 50 then
+    elseif ret < 98 then
         -- raise
         return math.random(MATCH.maxPot - me.bet + 1, MATCH.maxPot - me.bet + 200)
     else
@@ -97,11 +97,11 @@ end
 -- 河牌圈下注(已翻5张牌): 返回下注的钱, 0check, -1弃牌, [非法:如果比人家少直接弃牌,比自己多则算all-in]
 function Player:onRiver(MATCH)
     local me = GET_PLAYER(Player.name)
-    local ret = math.random(1, 50)
+    local ret = math.random(1, 100)
     if ret == 1 then
         -- flod
         return -1
-    elseif ret < 30 then
+    elseif ret < 60 then
         if MATCH.maxPot == me.bet then
             -- check
             return 0
@@ -109,7 +109,7 @@ function Player:onRiver(MATCH)
             -- call
             return MATCH.maxPot - me.bet
         end
-    elseif ret < 50 then
+    elseif ret < 98 then
         -- raise
         return math.random(MATCH.maxPot - me.bet + 1, MATCH.maxPot - me.bet + 200)
     else
