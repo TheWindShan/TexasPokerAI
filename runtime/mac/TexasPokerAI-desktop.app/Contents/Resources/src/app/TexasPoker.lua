@@ -35,6 +35,7 @@ local MATCH = {
     livePlayers = 1, -- 场上剩余选手
     cards = { {}, {}, {} }, -- 桌面已翻开的CARD数组, 0-5张
     mainPot = 10000,
+    dealerIndex = 1,
     sidePots = {
         { money = 100, players = { "player1", "player2" } },
         { money = 100, players = { "player3", "player4" } },
@@ -99,11 +100,22 @@ function TexasPoker:sitDown()
         match.playerInfos[i].player:onSitDown(match)
     end
 
-    for i = 1, playTimes do
-        TexasPoker:startNewRound(i)
+    local id = 1
+    repeat
+        TexasPoker:startNewRound(id)
+        id = id + 1
+    until TexasPoker:isEnd()
+
+    print("=====================================================================")
+    print("=====================================================================")
+end
+
+function TexasPoker:isEnd()
+    local left = 0
+    for i = 1, #match.playerInfos do
+        left = left + (match.playerInfos[i].moneyLeft ~= 0 and 1 or 0)
     end
-    print("=====================================================================")
-    print("=====================================================================")
+    return left == 1
 end
 
 function TexasPoker:startNewRound(i)
@@ -112,6 +124,16 @@ function TexasPoker:startNewRound(i)
     print("TexasPoker:startNewRound --> " .. i)
     for i = 1, #match.playerInfos do
         print(string.format("%s: moneyLeft ==> $%d", match.playerInfos[i].name, match.playerInfos[i].moneyLeft))
+    end
+
+    -- remove out players
+    local count = #match.playerInfos
+    for i = count, 1, -1 do
+        if match.playerInfos[i].moneyLeft < match.bigBlind then
+            print(string.format("TexasPoker:Player(%s) is Out!", match.playerInfos[i].name))
+            table.remove(match.playerInfos, i)
+            i = i + 1
+        end
     end
 
     match.id = i
@@ -129,6 +151,8 @@ function TexasPoker:startNewRound(i)
             dealerIndex = i
         end
     end
+    match.dealerIndex = dealerIndex
+
     -- blind pot
     local player1 = match.playerInfos[(dealerIndex) % #match.playerInfos + 1]
     player1.bet = match.smallBlind
@@ -136,7 +160,6 @@ function TexasPoker:startNewRound(i)
     local player2 = match.playerInfos[(dealerIndex + 1) % #match.playerInfos + 1]
     player2.bet = match.bigBlind
     player2.moneyLeft = player2.moneyLeft - match.bigBlind
-    self:printBet()
 
     -- reset datas
     match.cards = {}
@@ -144,48 +167,58 @@ function TexasPoker:startNewRound(i)
     match.maxPot = match.bigBlind
     match.sidePots = {}
     match.livePlayers = #match.playerInfos
+    self:printBet()
 
     TexasPoker:prepare()
     TexasPoker:start()
     repeat
-        if TexasPoker:preFlop() then
+        local ret = TexasPoker:preFlop()
+        if ret == 2 then
             break
         end
         print(string.format("*******************************TexasPoker:dispatchCards:*******************************"))
-        local ret = dealer:dispatchCard(3)
-        table.insert(match.cards, ret[1])
-        table.insert(match.cards, ret[2])
-        table.insert(match.cards, ret[3])
+        local cards = dealer:dispatchCard(3)
+        table.insert(match.cards, cards[1])
+        table.insert(match.cards, cards[2])
+        table.insert(match.cards, cards[3])
         print(string.format("Cards --> [%d%s, %d%s, %d%s]",
             match.cards[1].number, match.cards[1].color,
             match.cards[2].number, match.cards[2].color,
             match.cards[3].number, match.cards[3].color))
 
-        if TexasPoker:flop() then
-            break
+        if ret ~= 3 then
+            ret = TexasPoker:flop()
+            if ret == 2 then
+                break
+            end
         end
-        local ret = dealer:dispatchCard(1)
-        table.insert(match.cards, ret[1])
+        local cards = dealer:dispatchCard(1)
+        table.insert(match.cards, cards[1])
         print(string.format("Cards --> [%d%s, %d%s, %d%s, %d%s]",
             match.cards[1].number, match.cards[1].color,
             match.cards[2].number, match.cards[2].color,
             match.cards[3].number, match.cards[3].color,
             match.cards[4].number, match.cards[4].color))
-        if TexasPoker:turn() then
-            break
+
+        if ret ~= 3 then
+            ret = TexasPoker:turn()
+            if ret == 2 then
+                break
+            end
         end
-        local ret = dealer:dispatchCard(1)
-        table.insert(match.cards, ret[1])
+        local cards = dealer:dispatchCard(1)
+        table.insert(match.cards, cards[1])
         print(string.format("Cards --> [%d%s, %d%s, %d%s, %d%s, %d%s]",
             match.cards[1].number, match.cards[1].color,
             match.cards[2].number, match.cards[2].color,
             match.cards[3].number, match.cards[3].color,
             match.cards[4].number, match.cards[4].color,
             match.cards[5].number, match.cards[5].color))
-        if TexasPoker:river() then
-            break
+
+        if ret ~= 3 then
+            ret = TexasPoker:river()
         end
-    until false
+    until true
     TexasPoker:endRound()
 end
 
@@ -226,7 +259,7 @@ function TexasPoker:preFlop()
     -- pre flop
     print("")
     print("TexasPoker:pre flop ------------------------------")
-    local ret = TexasPoker:bet(BET_ROUND.round_preflop)
+    local ret = TexasPoker:bet(BET_ROUND.round_preflop, match.dealerIndex - 1 + 2)
     print(string.format("TexasPoker:mainPot ==> $%d", match.mainPot))
     return ret
 end
@@ -235,7 +268,7 @@ function TexasPoker:flop()
     -- flop
     print("")
     print("TexasPoker:flop ------------------------------")
-    local ret = TexasPoker:bet(BET_ROUND.round_flop)
+    local ret = TexasPoker:bet(BET_ROUND.round_flop, match.dealerIndex - 1)
     print(string.format("TexasPoker:mainPot ==> $%d", match.mainPot))
     return ret
 end
@@ -244,7 +277,7 @@ function TexasPoker:turn()
     -- turn
     print("")
     print("TexasPoker:turn ------------------------------")
-    local ret = TexasPoker:bet(BET_ROUND.round_turn)
+    local ret = TexasPoker:bet(BET_ROUND.round_turn, match.dealerIndex - 1)
     print(string.format("TexasPoker:mainPot ==> $%d", match.mainPot))
     return ret
 end
@@ -253,9 +286,9 @@ function TexasPoker:river()
     -- river
     print("")
     print("TexasPoker:river ------------------------------")
-    local ret = TexasPoker:bet(BET_ROUND.round_river)
+    local ret = TexasPoker:bet(BET_ROUND.round_river, match.dealerIndex - 1)
     print(string.format("TexasPoker:mainPot ==> $%d", match.mainPot))
-    return ret
+    return true
 end
 
 function TexasPoker:endRound()
@@ -266,29 +299,37 @@ function TexasPoker:endRound()
         match.playerInfos[i].player:onNewRoundEnd(match)
     end
 
-    local winner
+    local winners = {}
     for i = 1, #match.playerInfos do
         local pi = match.playerInfos[i]
         if not pi.out then
-            winner = pi
-            break
+            table.insert(winners, pi)
         end
     end
+    local winner = winners[math.random(1, #winners)]
     print(string.format("TexasPoker:mainPot ==> $%d, winner is %s", match.mainPot, winner.name))
     winner.moneyLeft = winner.moneyLeft + match.mainPot
+    local total = 0
     for i = 1, #match.playerInfos do
         print(string.format("%s: moneyLeft ==> $%d", match.playerInfos[i].name, match.playerInfos[i].moneyLeft))
+        total = total + match.playerInfos[i].moneyLeft
     end
     print("TexasPoker:endRound --> " .. match.id)
+    print("TotalMoney = $" .. total)
     print("---------------------------------------------------------------------")
     print("")
 end
 
-function TexasPoker:bet(type)
+-- reutrn 1 加注结束,继续发牌
+-- reutrn 2 全部盖牌,结束只剩一家
+-- reutrn 3 只有一家还有剩余筹码或者没有,其他人都allin,直接发全部牌
+function TexasPoker:bet(type, offset)
+    local off = offset and offset or 0
     local balance = 0
-    for i = 1, #match.playerInfos * maxRound do
+    for i = 1 + off, #match.playerInfos * (maxRound + 1) + off do
+        local canRaise = i < #match.playerInfos * maxRound + off
         local pi = match.playerInfos[i % #match.playerInfos + 1]
-        if pi.moneyLeft > 0 then
+        if not pi.out and pi.moneyLeft > 0 then
             local ret = 0
             if type == BET_ROUND.round_preflop then
                 ret = pi.player:onPreflop(match)
@@ -299,65 +340,113 @@ function TexasPoker:bet(type)
             elseif type == BET_ROUND.round_river then
                 ret = pi.player:onRiver(match)
             end
-            if ret < 0 or ret > pi.moneyLeft or (pi.bet + ret < match.maxPot) then
+            if ret > pi.moneyLeft then
+                ret = pi.moneyLeft
+            end
+            if ret < 0 or (pi.bet + ret < match.maxPot) then
                 print(string.format("player(%s) --> Fold", pi.name))
-                if ret > pi.moneyLeft then
-                    print(string.format("player(%s) --> not enough money, 2b!", pi.name))
-                end
+                --                if ret > pi.moneyLeft then
+                --                    print(string.format("player(%s) --> not enough money, 2b!", pi.name))
+                --                end
                 pi.out = true
                 match.livePlayers = match.livePlayers - 1
-                self:printBet()
-                if match.livePlayers == 1 then
-                    return true
-                end
+                self:printBet(balance)
             elseif ret == 0 and match.maxPot == pi.bet then
                 print(string.format("player(%s) --> Check", pi.name))
                 balance = balance + 1
-                self:printBet()
-            elseif pi.bet + ret < match.maxPot and pi.moneyLeft == ret then
+                self:printBet(balance)
+            elseif pi.moneyLeft == ret then
+                if ret + pi.bet > match.maxPot then
+                    -- Raise
+                    balance = 1
+                    match.maxPot = ret + pi.bet
+                elseif ret + pi.bet == match.maxPot then
+                    -- Call
+                    balance = balance + 1
+                else
+                    -- Not enough
+                    balance = balance + 1
+                end
                 match.mainPot = match.mainPot + ret
                 print(string.format("player(%s) --> Allin $%d, mainPot ==> $%d", pi.name, ret, match.mainPot))
+                pi.bet = pi.bet + ret
                 pi.moneyLeft = 0
-                balance = balance + 1
-                self:printBet()
+                --                balance = balance + 1
+                self:printBet(balance)
+
+                if match.livePlayers == 1 then
+                    return 3
+                end
             elseif ret + pi.bet == match.maxPot then
                 match.mainPot = match.mainPot + ret
-                print(string.format("player(%s) --> Call, mainPot ==> $%d", pi.name, ret, match.mainPot))
+                print(string.format("player(%s) --> Call $%d, mainPot ==> $%d", pi.name, ret, match.mainPot))
                 pi.moneyLeft = pi.moneyLeft - ret
                 pi.bet = match.maxPot
                 balance = balance + 1
-                self:printBet()
+                self:printBet(balance)
             elseif ret + pi.bet > match.maxPot then
-                match.mainPot = match.mainPot + ret
-                pi.moneyLeft = pi.moneyLeft - ret
-                match.maxPot = ret + pi.bet
-                print(string.format("player(%s) --> Raise $%d, mainPot ==> $%d, maxPot ==> $%d", pi.name, ret, match.mainPot, match.maxPot))
-                pi.bet = match.maxPot
-                balance = 1
-                self:printBet()
+                if not canRaise then
+                    -- 不能在raise了, Call
+                    ret = match.maxPot - pi.bet
+                    match.mainPot = match.mainPot + ret
+                    print(string.format("player(%s) --> Call $%d, mainPot ==> $%d", pi.name, ret, match.mainPot))
+                    pi.moneyLeft = pi.moneyLeft - ret
+                    pi.bet = match.maxPot
+                    balance = balance + 1
+                    self:printBet(balance)
+                else
+                    match.mainPot = match.mainPot + ret
+                    pi.moneyLeft = pi.moneyLeft - ret
+                    match.maxPot = ret + pi.bet
+                    print(string.format("player(%s) --> Raise $%d, mainPot ==> $%d, maxPot ==> $%d", pi.name, ret, match.mainPot, match.maxPot))
+                    pi.bet = match.maxPot
+                    balance = 1
+                    self:printBet(balance)
+                end
             end
         else
-            print(string.format("player(%s) --> Pass", pi.name))
-            balance = balance + 1
+            if not pi.out then
+                print(string.format("player(%s) --> Pass", pi.name))
+                balance = balance + 1
+                self:printBet(balance)
+            end
         end
 
-        if balance == match.livePlayers then
-            break
+        if balance == match.livePlayers or match.livePlayers == 1 then
+            local out = 0
+            local moneyLeft = 0
+            for i = 1, #match.playerInfos do
+                local pi = match.playerInfos[i]
+                out = out + (pi.out and 1 or 0)
+                if not pi.out then
+                    moneyLeft = moneyLeft + (pi.moneyLeft > 0 and 1 or 0)
+                end
+            end
+            if out == #match.playerInfos - 1 then
+                return 2
+            else
+                if moneyLeft <= 1 then
+                    return 3
+                else
+                    return 1
+                end
+            end
         end
     end
-    return false
+    return 1
 end
 
-function TexasPoker:printBet()
+function TexasPoker:printBet(balance)
+    local b = balance and balance or 0
     local ret = ""
     for i = 1, #match.playerInfos do
         if match.playerInfos[i].out then
-            ret = ret .. string.format("(%s: $%d) ", match.playerInfos[i].name, match.playerInfos[i].bet)
+            ret = ret .. string.format("(%s: $%d/%d) ", match.playerInfos[i].name, match.playerInfos[i].bet, match.playerInfos[i].moneyLeft)
         else
-            ret = ret .. string.format("[%s: $%d] ", match.playerInfos[i].name, match.playerInfos[i].bet)
+            ret = ret .. string.format("[%s: $%d/%d] ", match.playerInfos[i].name, match.playerInfos[i].bet, match.playerInfos[i].moneyLeft)
         end
     end
-    print(ret)
+    print(ret .. " balance " .. b .. " livePlayers " .. match.livePlayers)
 end
 
 return TexasPoker
